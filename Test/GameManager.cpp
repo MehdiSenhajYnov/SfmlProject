@@ -10,7 +10,7 @@ void GameManager::Run()
 {
 	SceneManager::OnSceneChanged.Subscribe(&GameManager::OnChangeSceneAsked, this);
 	haveToChangeScene = false;
-	OnChangeSceneAsked(SceneManager::SceneEnum::LevelOne);
+	OnChangeSceneAsked(SceneManager::SceneEnum::Menu);
 
 	sf::Clock dtClock;
 	float deltaTime;
