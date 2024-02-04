@@ -7,6 +7,7 @@ Collider::Collider(){}
 void Collider::InitializeCollider(std::shared_ptr<GameObject> _gameObject, std::vector<sf::Vector2f>  _allPoints)
 {
 	LoadComponentBase(_gameObject);
+	IsStatic = false;
 
 	allPoints = _allPoints;
 
@@ -27,12 +28,9 @@ Collider::~Collider()
 
 }
 
-std::shared_ptr<GameObject> Collider::GetAttachedObject()
-{
-	return gameObject;
-}
 
-void Collider::SetVisible(bool _visibleState)
+
+void Collider::SetVisible(bool _visibleState, Camera* cameraToUse)
 {
 	Visible = _visibleState;
 
@@ -40,12 +38,12 @@ void Collider::SetVisible(bool _visibleState)
 	{
 		CreateShape();
 		shape_ptr = &shape;
-		Camera::AddToPermanentDrawablesObjects(shape_ptr, gameObject);
+		cameraToUse->AddToPermanentDrawablesObjects(shape_ptr, gameObject);
 
 	}
 	else
 	{
-		Camera::RemoveFromPermanentDrawablesObjects(shape_ptr);
+		cameraToUse->RemoveFromPermanentDrawablesObjects(shape_ptr);
 		shape_ptr = nullptr;
 	}
 
@@ -71,7 +69,7 @@ sf::Vector2f Collider::GetCenter()
 	return Center;
 }
 
-std::vector<Collider*> Collider::GetCurrentCollisions()
+std::map<Collider*, sf::Vector2f> Collider::GetCurrentCollisions()
 {
 	return currentCollisions;
 }
@@ -80,7 +78,7 @@ void Collider::AddInCollisionWith(Collider* ColliderToAdd, sf::Vector2f ContactP
 {
 	auto vectorToStr = [](sf::Vector2f toconvert) { return "x : " + std::to_string(toconvert.x) + " y : " + std::to_string(toconvert.y); };
 
-	currentCollisions.push_back(ColliderToAdd);
+	currentCollisions[ColliderToAdd] = ContactPoint;
 	//std::cout << "Collision enter between " << this->gameObject->Name << " and " << ColliderToAdd->gameObject->Name << std::endl;
 	//std::cout << "Current velocity " << vectorToStr(this->GetVelocity()) << std::endl;
 	//std::cout << "Current acceleration " << vectorToStr(this->GetAcceleration()) << std::endl;
@@ -89,28 +87,16 @@ void Collider::AddInCollisionWith(Collider* ColliderToAdd, sf::Vector2f ContactP
 
 void Collider::RemoveFromCollisionWith(Collider* ColliderToRemove)
 {
-	for (int i = 0; i < currentCollisions.size(); i++)
+	if (currentCollisions.contains(ColliderToRemove))
 	{
-		if (currentCollisions[i] == ColliderToRemove)
-		{
-			currentCollisions.erase(currentCollisions.begin() + i);
-			//std::cout << "Collision exit between " << this->gameObject->Name << " and " << ColliderToRemove->gameObject->Name << std::endl;
-			FireCollisionExit(ColliderToRemove);
-			return;
-		}
+		currentCollisions.erase(ColliderToRemove);
+		FireCollisionExit(ColliderToRemove);
 	}
 }
 
 bool Collider::AlreadyColliding(Collider* ColliderToCheck)
 {
-	for (int i = 0; i < currentCollisions.size(); i++)
-	{
-		if (currentCollisions[i] == ColliderToCheck)
-		{
-			return true;
-		}
-	}
-	return false;
+	return currentCollisions.contains(ColliderToCheck);
 }
 
 
@@ -132,17 +118,18 @@ void Collider::CreateShape()
 
 void Collider::Update(float deltaTime)
 {
+
 	if (Gravity)
 	{
-		AddForce(sf::Vector2f(0, gravityForce));
+		AddForce(sf::Vector2f(0, gravityForce/1000));
 	}
 
-	velocity = acceleration * deltaTime;
+	//velocity = acceleration * deltaTime;
 
-	acceleration *= frictionForce;
+	velocity *= frictionForce;
 
-	if (std::abs(acceleration.x) < 0.1f && std::abs(acceleration.y) < 0.1f) {
-		acceleration = sf::Vector2f(0.0f, 0.0f);
+	if (std::abs(velocity.x) < 0.00001f && std::abs(velocity.y) < 0.00001f) {
+		velocity = sf::Vector2f(0.0f, 0.0f);
 	}
 
 	ColliderUpdate(deltaTime);
@@ -150,7 +137,31 @@ void Collider::Update(float deltaTime)
 
 void Collider::AddForce(sf::Vector2f forceToAdd)
 {
-	acceleration += (forceToAdd*1.5f);
+	// testing
+	//forceToAdd.x = forceToAdd.x / 100;
+	//forceToAdd.y = forceToAdd.y / 100;
+	if (IsStatic) return;
+
+	auto vectorToStr = [](sf::Vector2f toconvert) { return "x : " + std::to_string(toconvert.x) + " y : " + std::to_string(toconvert.y); };
+	if (std::isnan(forceToAdd.x) || std::isnan(forceToAdd.y))
+	{
+		std::cout << "adding NAN force" << std::endl;
+		return;
+	}
+	if ((velocity + forceToAdd).x <= -std::numeric_limits<float>::max() || (velocity + forceToAdd).y <= -std::numeric_limits<float>::max())
+	{
+		std::cout << "out of limit. MIN Force = " << std::numeric_limits<float>::min() <<" acceleration = " << vectorToStr(velocity)  << " force to add : " << vectorToStr(forceToAdd) <<std::endl;
+		return;
+	}
+
+	if ((velocity + forceToAdd).x >= std::numeric_limits<float>::max() || (velocity + forceToAdd).y >= std::numeric_limits<float>::max())
+	{
+		std::cout << "out of limit MAX Force" << std::endl;
+		return;
+	}
+	
+	velocity += (forceToAdd);
+	//std::cout << "Add force : " << vectorToStr(forceToAdd) << " Current velocity : " << vectorToStr(velocity) << std::endl;
 }
 
 void Collider::SetVelocity(sf::Vector2f newVelocity)
@@ -158,20 +169,11 @@ void Collider::SetVelocity(sf::Vector2f newVelocity)
 	velocity = newVelocity;
 }
 
-void Collider::SetAcceleration(sf::Vector2f newAcceleration)
-{
-	acceleration = newAcceleration;
-}
-
 sf::Vector2f Collider::GetVelocity()
 {
 	return velocity;
 }
 
-sf::Vector2f Collider::GetAcceleration()
-{
-	return acceleration;
-}
 
 Event<Collider*, sf::Vector2f>* Collider::OnCollisionEnter()
 {
@@ -181,6 +183,16 @@ Event<Collider*, sf::Vector2f>* Collider::OnCollisionEnter()
 Event<Collider*>* Collider::OnCollisionExit()
 {
 	return &onCollisionExit;
+}
+
+bool Collider::GetIsStatic()
+{
+	return IsStatic;
+}
+
+void Collider::SetIsStatic(bool _isStatic)
+{
+	IsStatic = _isStatic;
 }
 
 void Collider::FireCollisionEnter(Collider* CollideWith, sf::Vector2f ContactPoint)

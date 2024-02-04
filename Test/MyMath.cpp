@@ -146,3 +146,146 @@ sf::Vector2f MyMath::CalculateSymmetricPoint(const sf::Vector2f& A, const sf::Ve
 
 	return sf::Vector2f(D_x, D_y);
 }
+
+
+float MyMath::CalculerAngle(const sf::Vector2f& A, const sf::Vector2f& B, const sf::Vector2f& C) {
+	// Calcul des longueurs des côtés du triangle
+	float AB = sqrt(pow(B.x - C.x, 2) + pow(B.y - C.y, 2));
+	float BC = sqrt(pow(A.x - B.x, 2) + pow(A.y - B.y, 2));
+	float CA = sqrt(pow(C.x - A.x, 2) + pow(C.y - A.y, 2));
+
+	// Utilisation de la loi des cosinus pour calculer l'angle en radians au point A
+	if (2 * BC * CA == 0)
+	{ 
+		return 0;
+	}
+
+	float cosA = (BC * BC + CA * CA - AB * AB) / (2 * BC * CA);
+	if (cosA > 1)
+	{
+		cosA = 1;
+	}
+	else if (cosA < -1)
+	{
+		cosA = -1;
+	}
+	float angleRad = acos(cosA);
+
+	// Conversion de l'angle en radians en degrés
+	float angleDeg = angleRad * (180.0 / PI);
+
+	return angleDeg;
+}
+
+float MyMath::VectorLength(const sf::Vector2f& vecteur) {
+	return std::sqrt(vecteur.x * vecteur.x + vecteur.y * vecteur.y);
+}
+
+sf::Vector2f MyMath::TrouverPointA(const sf::Vector2f& B, const sf::Vector2f& C, float angleC, float segmentLength, sf::Vector2f& secondResult) {
+
+	sf::Vector2f tempC;
+	bool haveToAdd180 = false;
+	if (B.x >= C.x && B.y >= B.y)
+	{
+		tempC = C + sf::Vector2f(segmentLength, 0);
+	}
+	else
+	{
+		tempC = C + sf::Vector2f(-segmentLength, 0);
+		haveToAdd180 = true;
+	}
+
+	float globalAngleC = CalculerAngle(C, B, tempC);
+	float angleToUse = globalAngleC - angleC;
+
+	if (angleToUse < 0)
+	{
+		angleToUse = 360 + angleToUse;
+	}
+	if (haveToAdd180)
+	{
+		angleToUse += 180;
+		if (angleToUse > 360)
+		{
+			angleToUse = (angleToUse - 360);
+		}
+	}
+
+	float xx = C.x + (segmentLength * cos(RadiantOf(angleToUse)));
+	float yy = C.y + (segmentLength * sin(RadiantOf(angleToUse)));
+	sf::Vector2f toReturn(xx, yy);
+
+
+	angleToUse += (angleC*2);
+	if (angleToUse > 360)
+	{
+		angleToUse = (angleToUse - 360);
+	}
+
+	xx = C.x + (segmentLength * cos(RadiantOf(angleToUse)));
+	yy = C.y + (segmentLength * sin(RadiantOf(angleToUse)));
+	secondResult.x = xx;
+	secondResult.y = yy;
+	return toReturn;
+}
+
+
+sf::Vector2f MyMath::GetNormalizedVector(const sf::Vector2f& toNormalize)
+{
+	float norme = std::sqrt(toNormalize.x * toNormalize.x + toNormalize.y * toNormalize.y);
+	return toNormalize / norme;
+}
+
+
+sf::Vector2f MyMath::IntersectionPoint(sf::Vector2f p1, sf::Vector2f p2, sf::Vector2f q1, sf::Vector2f q2, bool& result) {
+	result = true;
+	sf::Vector2f b = q1 - p1;
+	sf::Vector2f A[] = { p2 - p1, q1 - q2 };
+	float det_A = A[0].x * A[1].y - A[0].y * A[1].x;
+
+	if (det_A != 0) {
+		sf::Vector2f x = sf::Vector2f((b.x * A[1].y - b.y * A[1].x) / det_A, (b.y * A[0].x - b.x * A[0].y) / det_A);
+		if (x.x >= 0 && x.x <= 1 && x.y >= 0 && x.y <= 1)
+		{
+			return sf::Vector2f((1 - x.x) * p1.x + x.x * p2.x, (1 - x.x) * p1.y + x.x * p2.y);
+		}
+		else
+		{
+			result = false;
+			return sf::Vector2f(-1, -1);
+		}
+	}
+
+	sf::Vector2f denom_p = (p2 - p1 == sf::Vector2f(0, 0)) ? sf::Vector2f(-1, -1) : (p2 - p1);
+	sf::Vector2f s;
+	if (denom_p.x != -1 && denom_p.y != -1) {
+		s.x = (q1.x - p1.x) / denom_p.x;
+		s.y = (q1.y - p1.y) / denom_p.y;
+		if (s.x >= 0 && s.x <= 1 && s.y >= 0 && s.y <= 1)
+		{
+			return q1;
+		}
+	}
+
+	if (denom_p.x != -1 && denom_p.y != -1) {
+		s.x = (q2.x - p1.x) / denom_p.x;
+		s.y = (q2.y - p1.y) / denom_p.y;
+		if (s.x >= 0 && s.x <= 1 && s.y >= 0 && s.y <= 1)
+		{
+			return q2;
+		}
+	}
+
+	sf::Vector2f denom_q = (q2 - q1 == sf::Vector2f(0, 0)) ? sf::Vector2f(-1, -1) : (q2 - q1);
+	if (denom_q.x != -1 && denom_q.y != -1) {
+		s.x = (p1.x - q1.x) / denom_q.x;
+		s.y = (p1.y - q1.y) / denom_q.y;
+		if (s.x >= 0 && s.x <= 1 && s.y >= 0 && s.y <= 1)
+		{
+			return p1;
+		}
+	}
+
+	result = false;
+	return sf::Vector2f(-1, -1);
+}

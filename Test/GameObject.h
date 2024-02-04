@@ -28,10 +28,14 @@ public:
 	void AddTags(std::string tagToAdd);
 	void RemoveTags(std::string tagToAdd);
 
+	int GetZIndex();
+	void SetZIndex(int _zIndex);
+
 private:
 	sf::Texture spriteTexture;
 	sf::Sprite sprite;
 	sf::Vector2<float> position;
 	std::vector<std::string> _tags;
+	int ZIndex;
 };
 

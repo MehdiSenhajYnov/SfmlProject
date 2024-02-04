@@ -41,8 +41,15 @@ inline void Event<Args...>::Desubscribe(void(*funcToSubscribe)(Args...))
 template<typename ...Args>
 inline void Event<Args...>::InvokeEvent(Args ...args)
 {
-	for (int i = 0; i < functionSubscribbed.size(); i++)
+
+	if (functionSubscribbed.size() > 741382308990216) return;
+
+	if (functionSubscribbed.size() > 0)
 	{
-		functionSubscribbed[i](args...);
+		for (int i = 0; i < functionSubscribbed.size(); i++)
+		{
+			if (functionSubscribbed[i] == nullptr) continue;
+			functionSubscribbed[i](args...);
+		}
 	}
 }

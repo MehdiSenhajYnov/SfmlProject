@@ -1,29 +1,58 @@
 #include "GameManager.h"
 
 GameManager::GameManager() :
-window(sf::VideoMode(1024, 800), "Simple 2D Game")
+window(sf::VideoMode(1700, 1000), "Simple 2D Game")
 {
 	iswindowFocus = true;
 }
 
 void GameManager::Run()
 {
-	auto gamescene = GameScene();
-	currentScene = &gamescene;
-	currentScene->InitializeScene(&window);
+	SceneManager::OnSceneChanged.Subscribe(&GameManager::OnChangeSceneAsked, this);
+	haveToChangeScene = false;
+	OnChangeSceneAsked(SceneManager::SceneEnum::LevelOne);
 
 	sf::Clock dtClock;
 	float deltaTime;
+
 	while (window.isOpen())
 	{
+		if (haveToChangeScene)
+		{
+			ChangeScene(newScene);
+		}
 		WindowsEvents();
-
 		if (!iswindowFocus) continue;
-		deltaTime = dtClock.restart().asSeconds();
 
+		deltaTime = dtClock.restart().asSeconds();
 		currentScene->Update(deltaTime);
+
 	}
 }
+
+void GameManager::OnChangeSceneAsked(SceneManager::SceneEnum sceneToUse)
+{
+	newScene = sceneToUse;
+	haveToChangeScene = true;
+}
+
+void GameManager::ChangeScene(SceneManager::SceneEnum sceneToUse)
+{
+	if (sceneToUse == SceneManager::SceneEnum::Menu)
+	{
+		currentScene = std::make_unique<MenuScene>();
+	}
+	else if (sceneToUse == SceneManager::SceneEnum::LevelOne)
+	{
+		currentScene = std::make_unique<LevelOneScene>();
+	}
+
+	currentScene->InitializeScene(&window);
+	haveToChangeScene = false;
+
+}
+
+
 
 void GameManager::WindowsEvents()
 {

@@ -1,9 +1,12 @@
 #include "Scene.h"
 
-std::shared_ptr<GameObject> Scene::CreateGameObject(std::string _gameObjectName)
+std::shared_ptr<GameObject> Scene::CreateGameObject(std::string _gameObjectName, int ZIndex)
 {
-	std::shared_ptr<GameObject> newGameObject = std::make_unique<GameObject>(_gameObjectName);
+	std::shared_ptr<GameObject> newGameObject = std::make_shared<GameObject>(_gameObjectName);
+	newGameObject->SetZIndex(ZIndex);
 	gamesObjectsComponents[newGameObject] = std::vector<Component*>();
+	gameObjectZIndex[ZIndex].push_back(newGameObject);
+
 	return newGameObject;
 }
 
@@ -40,6 +43,11 @@ std::map<std::shared_ptr<GameObject>, std::vector<Component*>> Scene::GetAllGame
 	return gamesObjectsComponents;
 }
 
+std::map<int, std::vector<std::shared_ptr<GameObject>>> Scene::GetAllGamesObjectsByZIndex()
+{
+	return gameObjectZIndex;
+}
+
 void Scene::CalUpdateOnAll(float deltaTime)
 {
 	for (auto& [_gameObject, components] : gamesObjectsComponents) 
@@ -47,7 +55,12 @@ void Scene::CalUpdateOnAll(float deltaTime)
 		for (int i = 0; i < components.size(); i++)
 		{
 			components[i]->Update(deltaTime);
+			//if (sceneChanged)
+			//{
+			//	return;
+			//}
 		}
 
 	}
 }
+

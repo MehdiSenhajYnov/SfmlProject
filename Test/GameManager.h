@@ -11,16 +11,24 @@
 #include "GraphicDebugger.h"
 #include "MyMath.h"
 #include "GameScene.h"
+#include "LevelOneScene.h"
+#include "MenuScene.h"
+#include "SceneManager.h"
 
 class GameManager
 {
 public:
 	GameManager();
 	void Run();
+	void OnChangeSceneAsked(SceneManager::SceneEnum sceneToUse);
+	void ChangeScene(SceneManager::SceneEnum sceneToUse);
 private:
+	SceneManager::SceneEnum newScene;
+	bool haveToChangeScene;
 	bool iswindowFocus;
 	void WindowsEvents();
-	Scene* currentScene;
+
+	std::shared_ptr<Scene> currentScene;
 	sf::RenderWindow window;
 };
 

@@ -6,28 +6,26 @@ GraphicDebugger::GraphicDebugger()
 
 
 
-void GraphicDebugger::Init(Camera* _mainCamera, int numberOfPointMax)
+void GraphicDebugger::Init(Camera* _mainCamera)
 {
 	mainCamera = _mainCamera;
-	toDebug.reserve(numberOfPointMax);
 }
 
-void GraphicDebugger::AddPointToDebug(sf::Vector2f pointToDebugCordinate, sf::Color colorOfPoint)
+void GraphicDebugger::AddPointToDebug(std::string pointName, sf::Vector2f pointToDebugCordinate, sf::Color colorOfPoint)
 {
-	int newElementIndex = toDebug.size();
-	toDebug.push_back(sf::CircleShape(10));
-	toDebug[newElementIndex].setFillColor(colorOfPoint);
-	toDebug[newElementIndex].setPosition(pointToDebugCordinate.x - 10, pointToDebugCordinate.y - 10);
+	toDebug[pointName] = sf::CircleShape(10);
+	toDebug[pointName].setFillColor(colorOfPoint);
+	toDebug[pointName].setPosition(pointToDebugCordinate.x - 10, pointToDebugCordinate.y - 10);
 	if (debuggerIsActive)
 	{
-		mainCamera->AddToPermanentDrawablesObjects(&toDebug[newElementIndex], nullptr);
+		mainCamera->AddToPermanentDrawablesObjects(&toDebug[pointName], nullptr);
 	}
 
 }
 
-void GraphicDebugger::ChangePositionOfPoint(int indexOfPoint, sf::Vector2f newposition)
+void GraphicDebugger::ChangePositionOfPoint(std::string pointName, sf::Vector2f newposition)
 {
-	toDebug[indexOfPoint].setPosition(newposition.x - 10, newposition.y - 10);
+	toDebug[pointName].setPosition(newposition.x - 10, newposition.y - 10);
 }
 
 void GraphicDebugger::Enable()
@@ -35,9 +33,10 @@ void GraphicDebugger::Enable()
 	if (!debuggerIsActive)
 	{
 		debuggerIsActive = true;
-		for (int i = 0; i < toDebug.size(); i++)
+
+		for (auto& [pointName, pointShape] : toDebug)
 		{
-			mainCamera->AddToPermanentDrawablesObjects(&toDebug[i], nullptr);
+			mainCamera->AddToPermanentDrawablesObjects(&toDebug[pointName],nullptr);
 		}
 	}
 }
@@ -47,9 +46,9 @@ void GraphicDebugger::Disable()
 	if (debuggerIsActive)
 	{
 		debuggerIsActive = false;
-		for (int i = 0; i < toDebug.size(); i++)
+		for (auto& [pointName, pointShape] : toDebug)
 		{
-			mainCamera->RemoveFromPermanentDrawablesObjects(&toDebug[i]);
+			mainCamera->RemoveFromPermanentDrawablesObjects(&toDebug[pointName]);
 		}
 	}
 }

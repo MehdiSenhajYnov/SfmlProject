@@ -12,15 +12,13 @@ public:
 	Collider();
 
 	virtual ~Collider();
-	std::shared_ptr<GameObject> GetAttachedObject();
-
-	void SetVisible(bool _visibleState);
+	void SetVisible(bool _visibleState, Camera* cameraToUse);
 
 	std::vector<sf::Vector2f> GetAllPoints();
 	std::vector<sf::Vector2f> GetAllPointsOnObject();
 	sf::Vector2f GetCenter();
 
-	std::vector<Collider*> GetCurrentCollisions();
+	std::map < Collider*, sf::Vector2f> GetCurrentCollisions();
 
 	void AddInCollisionWith(Collider* ColliderToAdd, sf::Vector2f ContactPoint);
 	void RemoveFromCollisionWith(Collider* ColliderToRemove);
@@ -29,30 +27,30 @@ public:
 	void AddForce(sf::Vector2f forceToAdd);
 
 	void SetVelocity(sf::Vector2f newVelocity);
-	void SetAcceleration(sf::Vector2f newAcceleration);
 
 	sf::Vector2f GetVelocity();
-	sf::Vector2f GetAcceleration();
 	bool Gravity;
 
 	Event<Collider*, sf::Vector2f>* OnCollisionEnter();
 	Event<Collider*>* OnCollisionExit();
 
 
+	bool GetIsStatic();
+	void SetIsStatic(bool _isStatic);
 protected:
 	void InitializeCollider(std::shared_ptr<GameObject> _gameObject, std::vector<sf::Vector2f> _allPoints);
 	void CreateShape();
 	std::vector<sf::Vector2f> allPoints;
 	sf::Vector2f Center;
 
-	std::vector<Collider*> currentCollisions;
+	std::map < Collider*, sf::Vector2f>  currentCollisions;
 
 	sf::ConvexShape* shape_ptr;
 	sf::ConvexShape shape;
 
 	bool Visible;
 	sf::Vector2f velocity;
-	sf::Vector2f acceleration;
+	//sf::Vector2f acceleration;
 
 	void FireCollisionEnter(Collider* CollideWith, sf::Vector2f ContactPoint);
 	void FireCollisionExit(Collider* CollideWith);
@@ -63,6 +61,8 @@ protected:
 	virtual void ColliderUpdate(float deltaTime) = 0;
 	const float frictionForce = 0.99f;
 	const float gravityForce = 14;
+
+	bool IsStatic;
 
 	Event<Collider*, sf::Vector2f> onCollisionEnter;
 	Event<Collider*> onCollisionExit;

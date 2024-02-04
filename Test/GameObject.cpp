@@ -39,6 +39,7 @@ void GameObject::SetSprite(std::string texturepath, sf::IntRect textureRect)
 
 void GameObject::SetPosition(sf::Vector2<float> _newposition)
 {
+
 	position = _newposition;
 }
 
@@ -69,11 +70,35 @@ sf::Vector2<float>* GameObject::GetPositionPointer()
 
 void GameObject::Move(float _x, float _y)
 {
+	if (position.x + _x >= std::numeric_limits<float>::max() || position.y + _y >= std::numeric_limits<float>::max())
+	{
+		std::cout << "out of limit MAX position" << std::endl;
+		return;
+	}
+	if (position.x + _x <= std::numeric_limits<float>::min() || position.y + _y <= std::numeric_limits<float>::min())
+	{
+		auto vectorToStr = [](sf::Vector2f toconvert) { return "x : " + std::to_string(toconvert.x) + " y : " + std::to_string(toconvert.y); };
+		std::cout << "out of limit MIN position" << std::endl;
+		return;
+	}
+
 	SetPosition(GetPosition().x + _x, GetPosition().y + _y);
 }
 
 void GameObject::Move(sf::Vector2f _moveBy)
 {
+	if ((position + _moveBy).x >= std::numeric_limits<float>::max() || (position + _moveBy).y >= std::numeric_limits<float>::max())
+	{
+		std::cout << "out of limit MAX position" << std::endl;
+		return;
+	}
+	if ((position + _moveBy).x <= -std::numeric_limits<float>::max() || (position + _moveBy).y <= -std::numeric_limits<float>::max())
+	{
+		auto vectorToStr = [](sf::Vector2f toconvert) { return "x : " + std::to_string(toconvert.x) + " y : " + std::to_string(toconvert.y); };
+		std::cout << "out of limit MIN position" << std::endl;
+		return;
+	}
+
 	SetPosition(GetPosition() + _moveBy);
 }
 
@@ -97,4 +122,14 @@ void GameObject::RemoveTags(std::string tagToRemove)
 			return;
 		}
 	}
+}
+
+int GameObject::GetZIndex()
+{
+	return ZIndex;
+}
+
+void GameObject::SetZIndex(int _zIndex)
+{
+	ZIndex = _zIndex;
 }

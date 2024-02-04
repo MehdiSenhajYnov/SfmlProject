@@ -6,254 +6,75 @@ GameScene::GameScene()
 
 void GameScene::InitializeScene(sf::RenderWindow* _window)
 {
-	oldCurrentForce = -9999;
-	isMousePressed = false;
+
+
+	if (!font.loadFromFile("fonts/Arial.ttf"))
+	{
+		std::cout << "ERROR" << std::endl;
+	}
+
+	ThrowsText.setFont(font); // font is a sf::Font
+
+
+	// set the character size
+	ThrowsText.setCharacterSize(48); // in pixels, not points!
+	ThrowsText.setStyle(sf::Text::Bold | sf::Text::Underlined);
+	// set the color
+	ThrowsText.setFillColor(sf::Color::Black);
+
+
+	std::cout << "Game Scene initialize begin" << std::endl;
 	window = _window;
-	mainCameraObject = CreateGameObject("mainCameraObject");
+
+	mainCameraObject = CreateGameObject("mainCameraObject",0);
 	mainCamera = Camera();
 	mainCamera.Initialize(mainCameraObject, sf::Vector2f(10000, 10000), window, this);
 
 	AddComponent(mainCameraObject, &mainCamera);
 	graphicDebugger = GraphicDebugger();
-	graphicDebugger.Init(&mainCamera, 15);
+	graphicDebugger.Init(&mainCamera);
 	
 	physicsEngine = PhysicsEngine();
 	physicsEngine.Init(this, &graphicDebugger);
 
+	SetupMapElements();
+	SetupElements();
+
 	//graphicDebugger.Disable();
-
-	Player = CreateGameObject("Ball");
-	Player->SetSprite("Circle.png");
-	Player->SetPosition(300,600);
-	float ballcolliderlength = 100;
-
-	playerCollider = physicsEngine.CreateCircleCollider(Player, sf::Vector2f(0, 0), 50, 30);
-	playerCollider->OnCollisionEnter()->Subscribe(&GameScene::OnPlayerCollisionEnter, this);
-
-	std::shared_ptr<GameObject> box = CreateGameObject("Box");
-	box.get()->SetSprite("Square.png");
-	box.get()->SetPosition(0, 0);
-	std::shared_ptr<BoxCollider> boxCollider = physicsEngine.CreateBoxCollider(box, sf::Vector2f(0, 0), sf::Vector2f(100, 100));
-
-
-
-	//sf::Thread thread(&Camera::RenderingThread, &mainCamera);
-	//thread.launch();
-
-	sf::Clock dtClock;
-	float deltaTime;
-
-
-	sf::Vector2f basePosition(300, 300);
-
-	int circleRadius = 200;
-	sf::CircleShape circle(circleRadius);
-
-	circle.setPosition(basePosition);
-	circle.setOutlineColor(sf::Color::Red);
-	circle.setOutlineThickness(5);
-	circle.setFillColor(sf::Color::Transparent);
-
-	int shapePoints = 8;
-
-	auto RegularShape = CreateGameObject("RegularShape");
-	std::shared_ptr<CircleCollider> testshapeCollider =
-		physicsEngine.CreateCircleCollider(RegularShape, sf::Vector2f(0, 0), 100, 50);
-	RegularShape->SetPosition(200, 0);
-
-
-
-	playerCollider->Gravity = true;
-
-
-	std::shared_ptr<GameObject> ground = CreateGameObject("ground");
-	//ground.get()->SetSprite("Square.png");
-	ground->SetPosition(-2000, 750);
-	std::shared_ptr<BoxCollider> groundCollider = physicsEngine.CreateBoxCollider(ground, sf::Vector2f(0, 0), sf::Vector2f(5000, 100));
-
-	directionArrow = CreateGameObject("directionArrow");
-	directionArrow->SetSprite("Arrow.png");
-	directionArrow->GetSprite()->setScale(0.15, 0.15);
-	
-	forceArrow = CreateGameObject("forceArrow");
-	forceArrow->SetSprite("ArrowFull.png");
-	forceArrow->GetSprite()->setScale(0.15, 0.15);
-
-	float directionArrowWidth = directionArrow->GetSprite()->getTexture()->getSize().x;
-	float directionArrowHeight = directionArrow->GetSprite()->getTexture()->getSize().y;
-
-	sf::Vector2f directionOrigin(directionArrowWidth / 2, directionArrowHeight);
-	directionArrow->GetSprite()->setOrigin(directionOrigin);
-	directionArrow->SetPosition(300, 300);
-
-	forceArrow->SetPosition(300, 300);
-
 	physicsEngine.SwitchModifyMode();
+	std::cout << "Game Scene initialize end" << std::endl;
 
-
-	//playerCollider->AddForce(sf::Vector2f(0, -3300));
+	ThrowsText.setString(std::to_string(arrowComponent.GetCurrentThrows()) + " / " + std::to_string(arrowComponent.GetMaxThrows()));
+	ThrowsText.setPosition(sf::Vector2f(window->getSize().x - 150, 20));
+	mainCamera.AddToTexts(&ThrowsText);
 }
 
 void GameScene::Update(float deltaTime)
 {
 	mainCamera.Render();
-	KeyboardEvents();
 	GameLoop(deltaTime);
 }
 
-void GameScene::KeyboardEvents()
-{
-
-
-}
 
 void GameScene::GameLoop(float deltaTime)
 {
-	float multiplier = 30;
+	ThrowsText.setString(std::to_string(arrowComponent.GetCurrentThrows()) + " / " + std::to_string(arrowComponent.GetMaxThrows()));
 
-	if (playerCollider != nullptr && playerCollider->GetVelocity() != sf::Vector2f(0,0))
+	if (arrowComponent.PlayerIsInIdle)
 	{
-		//std::cout << "Player velocity = x: " << playerCollider->GetVelocity().x << " y: " 
-		//	<< playerCollider->GetVelocity().y << std::endl;
-
-		//std::cout << "Player Acceleration = x: " << playerCollider->GetAcceleration().x << " y: "
-		//	<< playerCollider->GetAcceleration().y << std::endl;
-	}
-
-
-	//if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
-	//{
-	//	//Player->Move(-10 * multiplier * deltaTime, 0);
-	//	physicsEngine.MoveObject(playerCollider.get(), sf::Vector2f(-10 * multiplier * deltaTime, 0));
-	//}
-
-	//if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-	//{
-	//	//Player->Move(10 * multiplier * deltaTime, 0);
-	//	physicsEngine.MoveObject(playerCollider.get(), sf::Vector2f(10 * multiplier * deltaTime, 0));
-	//}
-
-	//if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z))
-	//{
-	//	//Player->Move(0, -10 * multiplier * deltaTime);
-	//	physicsEngine.MoveObject(playerCollider.get(), sf::Vector2f(0, -10* multiplier * deltaTime));
-	//}
-
-	//if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
-	//{
-	//	//Player->Move(0, 10 * multiplier * deltaTime);
-	//	physicsEngine.MoveObject(playerCollider.get(), sf::Vector2f(0, 10 * multiplier * deltaTime));
-	//}
-	if (physicsEngine.SomeObjecsAreColliding())
-	{
-		//std::cout << "something collides" << std::endl;
-		Player->GetSprite()->setColor(sf::Color::Red);
-	}
-	else
-	{
-		Player->GetSprite()->setColor(sf::Color::Black);
-	}
-
-
-
-
-	if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
-	{
-		if (!isMousePressed)
+		if (arrowComponent.GetCurrentThrows() > arrowComponent.GetMaxThrows())
 		{
-			isMousePressed = true;
-			MouseInitialPosition = sf::Mouse::getPosition();
-		}
-
-		forceToGive = MouseInitialPosition - sf::Mouse::getPosition();
-		currentForce = (abs(forceToGive.x) + abs(forceToGive.y)) / 2;
-
-
-		sf::Vector2f targetPosition = directionArrow->GetPosition() + sf::Vector2f(forceToGive);
-
-
-		// Calcul de l'angle entre la position actuelle de l'objet et le point cible
-		currentAngle = std::atan2(targetPosition.y - directionArrow->GetPosition().y,
-								 targetPosition.x - directionArrow->GetPosition().x);
-		currentAngle = currentAngle * 180 / 3.14159265; // Convertir de radians à degrés
-		currentAngle += 90;
-
-		directionArrow->SetRotation(currentAngle);
-
-
-
-
-	}
-	else
-	{
-		if (isMousePressed)
-		{
-			forceToGive = MouseInitialPosition - sf::Mouse::getPosition();
-			std::cout << "Force x: " << forceToGive.x <<" y:" << forceToGive.y << std::endl;
-			isMousePressed = false;
-
-			float multiplier = 10;
-			playerCollider->AddForce(sf::Vector2f(forceToGive.x, forceToGive.y) * multiplier);
-			forceToGive = sf::Vector2i(0, 0);
+			SceneManager::ChangeScene(SceneManager::SceneEnum::Menu);
 		}
 	}
 
-
-
-
-	float angleRadians = (currentAngle - 90) * (3.41 / 180.0);
-
-	sf::Vector2f original(1, 0);
-
-
-
-
-	sf::Vector2f playerCenter =
-		sf::Vector2f(Player->GetPosition().x + (Player->GetSprite()->getTexture()->getSize().x / 2),
-			Player->GetPosition().y + (Player->GetSprite()->getTexture()->getSize().y / 2));
-
-	sf::Vector2f playerTopPosition =
-		sf::Vector2f(Player->GetPosition().x + (Player->GetSprite()->getTexture()->getSize().x / 2),
-			Player->GetPosition().y);
-
-	float rayon = abs(playerCenter.y - playerTopPosition.y);
-
-	// Calculer les nouvelles coordonnées après la rotation
-	float rotatedX = rayon * cos(angleRadians);
-	float rotatedY = rayon * sin(angleRadians);
-
-	sf::Vector2f rotatedVector(rotatedX, rotatedY);
-	rotatedVector.x *= 1.5;
-	rotatedVector.y *= 1.5;
-	directionArrow->SetPosition(playerCenter + rotatedVector);
-
-	//std::cout << "Player Center x:" << playerCenter.x << " y:" << playerCenter.y << std::endl;
-	//std::cout << "rotatedVector x:" << rotatedVector.x << " y:" << rotatedVector.y << std::endl;
-	//std::cout << "ArrowPosition x:" << forceArrow->GetPosition().x << " y:" << forceArrow->GetPosition().y << std::endl;
-
-	forceArrow->SetPosition(directionArrow->GetPosition());
-	forceArrow->SetRotation(directionArrow->GetRotation());
-
-	if (currentForce != oldCurrentForce)
+	if (Player->GetPosition().y > 1200)
 	{
-		if (currentForce < 0)
-		{
-			currentForce = 0;
-		} else if (currentForce > 648)
-		{
-			currentForce = 648;
-		}
-		forceArrow->GetSprite()->setTextureRect(sf::IntRect(0, 648 - currentForce, 450, currentForce));
-
-		float forceArrowWidth = forceArrow->GetSprite()->getTexture()->getSize().x;
-		float forceArrowHeight = currentForce;
-
-		sf::Vector2f forceOrigin(forceArrowWidth / 2, forceArrowHeight);
-		forceArrow->GetSprite()->setOrigin(forceOrigin);
-		oldCurrentForce = currentForce;
+		SceneManager::ChangeScene(SceneManager::SceneEnum::Menu);
 	}
 
-	//mainCameraObject->SetPosition(sf::Vector2(Player->GetPosition().x - window->getSize().x/2, mainCameraObject->GetPosition().y));
+
+	mainCameraObject->SetPosition(sf::Vector2(Player->GetPosition().x - window->getSize().x/2, mainCameraObject->GetPosition().y));
 
 	CalUpdateOnAll(deltaTime);
 	physicsEngine.UpdatePhysics(deltaTime);
@@ -268,16 +89,8 @@ void GameScene::DestroyScene()
 void GameScene::OnKeyDown(sf::Keyboard::Key pressedKey)
 {
 	float forceToAdd = 10;
-	float multiplier = 50;
+	float multiplier = 0.05f;
 
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::F))
-	{
-		currentForce += 50;
-	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::G))
-	{
-		currentForce -= 50;
-	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
 	{
 		playerCollider->AddForce(sf::Vector2f(-forceToAdd * multiplier, 0));
@@ -302,8 +115,180 @@ void GameScene::OnKeyDown(sf::Keyboard::Key pressedKey)
 
 void GameScene::OnPlayerCollisionEnter(Collider* _collideWith, sf::Vector2f _collisionPoint)
 {
-	//std::cout << "player collide with : " << _collideWith->GetAttachedObject()->Name;
-	//std::cout << " at x : " << _collisionPoint.x << " at y : " << _collisionPoint.y << std::endl;
+	if (_collideWith->GetAttachedObject()->Name == "Target")
+	{
+		SceneManager::ChangeScene(SceneManager::SceneEnum::Menu);
+	}
+}
+
+void GameScene::OnSceneChanged()
+{
+	sceneChanged = true;
 }
 
 
+
+
+
+std::shared_ptr<GameObject> GameScene::CreateBackground()
+{
+	auto tempBackground = CreateGameObject("Background", 0);
+	tempBackground->SetSprite("Background.png");
+	return tempBackground;
+}
+
+std::tuple<std::shared_ptr<GameObject>, std::shared_ptr<CircleCollider>> GameScene::CreatePlayer()
+{
+	auto _tempPlayer = CreateGameObject("Ball", 20);
+	_tempPlayer->SetSprite("assets/Ball.png");
+
+	_tempPlayer->GetSprite()->setScale(sf::Vector2f(0.025f, 0.025f));
+	_tempPlayer->SetPosition(300, 400);
+
+	auto _tempPlayerCollider = physicsEngine.CreateCircleCollider(_tempPlayer, sf::Vector2f(0, 0), 15, 15);
+	_tempPlayerCollider->OnCollisionEnter()->Subscribe(&GameScene::OnPlayerCollisionEnter, this);
+	_tempPlayerCollider->Gravity = true;
+
+	return std::make_tuple(_tempPlayer, _tempPlayerCollider);
+}
+
+std::tuple<std::shared_ptr<GameObject>, std::shared_ptr<GameObject>> GameScene::CreateArrows
+(std::shared_ptr<GameObject> _player, std::shared_ptr<Collider> _playerCollider, ArrowComponent& _arrowComponent, VisualForceArrow& _arrowVisual, int MaxThrows)
+{
+	auto tempDirectionArrow = CreateGameObject("directionArrow", 20);
+	tempDirectionArrow->SetSprite("Arrow.png");
+	tempDirectionArrow->GetSprite()->setScale(0.15, 0.15);
+
+	float directionArrowWidth = tempDirectionArrow->GetSprite()->getTexture()->getSize().x;
+	float directionArrowHeight = tempDirectionArrow->GetSprite()->getTexture()->getSize().y;
+
+	sf::Vector2f directionOrigin(directionArrowWidth / 2, directionArrowHeight);
+	tempDirectionArrow->GetSprite()->setOrigin(directionOrigin);
+	tempDirectionArrow->SetPosition(300, 300);
+
+	auto tempForceArrow = CreateGameObject("forceArrow", 30);
+	tempForceArrow->SetSprite("ArrowFull.png");
+	tempForceArrow->GetSprite()->setScale(0.15, 0.15);
+	tempForceArrow->SetPosition(300, 300);
+
+	_arrowComponent.InitComponent(tempDirectionArrow, _player, _playerCollider, MaxThrows);
+	_arrowVisual.InitComponent(tempForceArrow, &_arrowComponent);
+
+	AddComponent(tempDirectionArrow, &_arrowComponent);
+	AddComponent(tempForceArrow, &_arrowVisual);
+
+	return std::make_tuple(tempDirectionArrow, tempForceArrow);
+
+}
+
+std::tuple<std::shared_ptr<GameObject>, std::shared_ptr<CustomCollider>> GameScene::CreateTarget()
+{
+
+	std::shared_ptr<GameObject> target = CreateGameObject("Target", 20);
+	target->SetSprite("assets/Target.png");
+	target->GetSprite()->setScale(sf::Vector2f(0.05f, 0.05f));
+	std::shared_ptr<CustomCollider> targetCollider = physicsEngine.CreateCustomCollider(target, {
+		sf::Vector2f(15,70),
+		sf::Vector2f(45,70),
+		sf::Vector2f(60,79),
+		sf::Vector2f(60,90),
+
+		sf::Vector2f(45,100),
+		sf::Vector2f(15,100),
+		sf::Vector2f(0, 90),
+		sf::Vector2f(0,79),
+		});
+	targetCollider->SetIsStatic(true);
+
+	return std::make_tuple(target, targetCollider);
+
+}
+
+
+
+
+std::tuple<std::shared_ptr<GameObject>, std::shared_ptr<CustomCollider>> GameScene::CreatePlatformeOne()
+{
+
+	std::shared_ptr<GameObject> ground = CreateGameObject("ground", 10);
+	ground->SetSprite("assets/Platforme1.png");
+	ground->GetSprite()->setScale(sf::Vector2f(0.4f, 0.4f));
+	ground->SetPosition(300, 700);
+	std::shared_ptr<CustomCollider> groundCollider = physicsEngine.CreateCustomCollider(ground, {
+		sf::Vector2f(0,100),
+		sf::Vector2f(630,100),
+		sf::Vector2f(400,350),
+		sf::Vector2f(350,350),
+		sf::Vector2f(220,200),
+		sf::Vector2f(120,200),
+		});
+	groundCollider->SetIsStatic(true);
+
+	return std::make_tuple(ground, groundCollider);
+
+}
+
+
+
+
+std::tuple<std::shared_ptr<GameObject>, std::shared_ptr<CustomCollider>> GameScene::CreatePlatformeTwo()
+{
+
+	std::shared_ptr<GameObject> ground = CreateGameObject("ground", 10);
+	ground->SetSprite("assets/Platforme2.png");
+	ground->GetSprite()->setScale(sf::Vector2f(0.2f, 0.2f));
+	ground->SetPosition(300, 650);
+	std::shared_ptr<CustomCollider> groundCollider = physicsEngine.CreateCustomCollider(ground, {
+		sf::Vector2f(0,50),
+		sf::Vector2f(525,50),
+		sf::Vector2f(275,220),
+		sf::Vector2f(250,220),
+		sf::Vector2f(220,200),
+		sf::Vector2f(120,200),
+		});
+	groundCollider->SetIsStatic(true);
+
+	return std::make_tuple(ground, groundCollider);
+
+}
+
+
+std::tuple<std::shared_ptr<GameObject>, std::shared_ptr<CustomCollider>> GameScene::CreatePlatformeThree()
+{
+
+	std::shared_ptr<GameObject> ground = CreateGameObject("ground", 10);
+	ground->SetSprite("assets/Platforme3.png");
+	ground->GetSprite()->setScale(sf::Vector2f(0.4f, 0.4f));
+	ground->SetPosition(300, 600);
+	std::shared_ptr<CustomCollider> groundCollider = physicsEngine.CreateCustomCollider(ground, {
+		sf::Vector2f(0,100),
+		sf::Vector2f(750,100),
+		sf::Vector2f(430,280),
+		sf::Vector2f(190,280),
+		});
+	groundCollider->SetIsStatic(true);
+
+	return std::make_tuple(ground, groundCollider);
+
+}
+
+
+
+std::tuple<std::shared_ptr<GameObject>, std::shared_ptr<CustomCollider>> GameScene::CreatePlatformeFour()
+{
+
+	std::shared_ptr<GameObject> ground = CreateGameObject("ground", 10);
+	ground->SetSprite("assets/Platforme4.png");
+	ground->GetSprite()->setScale(sf::Vector2f(0.15f, 0.15f));
+	ground->SetPosition(300, 700);
+	std::shared_ptr<CustomCollider> groundCollider = physicsEngine.CreateCustomCollider(ground, {
+		sf::Vector2f(0,50),
+		sf::Vector2f(355,50),
+		sf::Vector2f(220,150),
+		sf::Vector2f(120,150),
+		});
+	groundCollider->SetIsStatic(true);
+
+	return std::make_tuple(ground, groundCollider);
+
+}

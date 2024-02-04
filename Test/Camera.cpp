@@ -1,7 +1,6 @@
 #pragma once
 #include "Camera.h"
 
-std::map <sf::Shape*, std::shared_ptr<GameObject>> Camera::PermanentDrawablesObjects;
 Camera::Camera()
 {
 }
@@ -30,45 +29,32 @@ void Camera::Render()
 		std::cout << "CAMERA NOT INITIALIZED" << std::endl;
 		return;
 	}
-
-	for (auto& [_gObject, components] : scene->GetAllGamesObjectsComponents())
+	for (auto& [zIndex, _gObjectList] : scene->GetAllGamesObjectsByZIndex())
 	{
-		if (_gObject.get() == nullptr) continue;
-		if (_gObject->GetSprite() == nullptr) continue;
-
-		// Le sprite de l'objet n'a pas de texture, pas besoin de le draw
-		if (_gObject->GetSprite()->getTexture() == nullptr) continue;
-
-		if (_gObject->GetPosition().x < gameObject->GetPosition().x - CameraView.x ||
-			_gObject->GetPosition().x > gameObject->GetPosition().x + CameraView.x)
+		for (int i = 0; i < _gObjectList.size(); i++)
 		{
-			continue;
+			if (_gObjectList[i].get() == nullptr) continue;
+			if (_gObjectList[i]->GetSprite() == nullptr) continue;
+
+			// Le sprite de l'objet n'a pas de texture, pas besoin de le draw
+			if (_gObjectList[i]->GetSprite()->getTexture() == nullptr) continue;
+
+			if (!IsOnDisplay(_gObjectList[i].get()))
+			{
+				continue;
+			}
+
+			_gObjectList[i]->GetSprite()->setPosition(_gObjectList[i]->GetPosition() - gameObject->GetPosition());
+			//std::cout << "drawing " << _gameObject->Name << std::endl;
+			window->draw(*_gObjectList[i]->GetSprite());
 		}
-
-		if (_gObject->GetPosition().y < gameObject->GetPosition().y - CameraView.y ||
-			_gObject->GetPosition().y > gameObject->GetPosition().y + CameraView.y)
-		{
-			continue;
-		}
-
-		_gObject->GetSprite()->setPosition(_gObject->GetPosition() - gameObject->GetPosition());
-		//std::cout << "drawing " << _gameObject->Name << std::endl;
-		window->draw(*_gObject->GetSprite());
-
 	}
 
 	for (auto& [toDraw, attachedObj] : PermanentDrawablesObjects)
 	{
 		if (attachedObj != nullptr)
 		{
-			if (attachedObj->GetPosition().x < gameObject->GetPosition().x - CameraView.x ||
-				attachedObj->GetPosition().x > gameObject->GetPosition().x + CameraView.x)
-			{
-				continue;
-			}
-
-			if (attachedObj->GetPosition().y < gameObject->GetPosition().y - CameraView.y ||
-				attachedObj->GetPosition().y > gameObject->GetPosition().y + CameraView.y)
+			if (!IsOnDisplay(attachedObj.get()))
 			{
 				continue;
 			}
@@ -79,9 +65,34 @@ void Camera::Render()
 		window->draw(*toDraw);
 	}
 
+	for (int i = 0; i < Texts.size(); i++)
+	{
+		if (Texts[i] == nullptr) continue;
+		window->draw(*Texts[i]);
+
+	}
+
 	window->display();
 }
 
+bool Camera::IsOnDisplay(GameObject* toCheck)
+{
+
+	// TODO: add object scale and texture size
+	if (toCheck->GetPosition().x < gameObject->GetPosition().x - CameraView.x ||
+		toCheck->GetPosition().x > gameObject->GetPosition().x + CameraView.x)
+	{
+		return false;
+	}
+
+	if (toCheck->GetPosition().y < gameObject->GetPosition().y - CameraView.y ||
+		toCheck->GetPosition().y > gameObject->GetPosition().y + CameraView.y)
+	{
+		return false;
+	}
+
+	return true;
+}
 
 
 void Camera::AddToPermanentDrawablesObjects(sf::Shape* drawableToAdd, std::shared_ptr<GameObject> attachedObject)
@@ -95,6 +106,28 @@ void Camera::RemoveFromPermanentDrawablesObjects(sf::Shape* drawableToRemove)
 	{
 		PermanentDrawablesObjects.erase(drawableToRemove);
 	}
+}
+
+void Camera::AddToTexts(sf::Text* textToAdd)
+{
+	Texts.push_back(textToAdd);
+}
+
+void Camera::RemoveFromTexts(sf::Text* textToRemove)
+{
+	for (int i = 0; i < Texts.size(); i++)
+	{
+		if (Texts[i] == textToRemove)
+		{
+			Texts.erase(Texts.begin() + i);
+			return;
+		}
+	}
+}
+
+sf::RenderWindow* Camera::GetCurrentWindow()
+{
+	return window;
 }
 
 void Camera::Start()
