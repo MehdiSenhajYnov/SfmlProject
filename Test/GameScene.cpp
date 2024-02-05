@@ -44,7 +44,8 @@ void GameScene::InitializeScene(sf::RenderWindow* _window)
 	SetupElements();
 
 	graphicDebugger.Disable();
-	physicsEngine.SwitchModifyMode();
+	//physicsEngine.SwitchModifyMode();
+	physicsEngine.SetModifyMode(false);
 	std::cout << "Game Scene initialize end" << std::endl;
 
 	ThrowsText.setString(std::to_string(arrowComponent.GetCurrentThrows()) + " / " + std::to_string(arrowComponent.GetMaxThrows()));
