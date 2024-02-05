@@ -121,7 +121,7 @@ void Collider::Update(float deltaTime)
 
 	if (Gravity)
 	{
-		AddForce(sf::Vector2f(0, gravityForce/1000));
+		AddForce(sf::Vector2f(0, gravityForce * 0.0025));
 	}
 
 	//velocity = acceleration * deltaTime;

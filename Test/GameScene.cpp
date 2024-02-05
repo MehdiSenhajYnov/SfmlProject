@@ -13,14 +13,17 @@ void GameScene::InitializeScene(sf::RenderWindow* _window)
 		std::cout << "ERROR" << std::endl;
 	}
 
-	ThrowsText.setFont(font); // font is a sf::Font
+	ThrowsText.setFont(font);
 
 
-	// set the character size
-	ThrowsText.setCharacterSize(48); // in pixels, not points!
+	ThrowsText.setCharacterSize(48);
 	ThrowsText.setStyle(sf::Text::Bold | sf::Text::Underlined);
-	// set the color
 	ThrowsText.setFillColor(sf::Color::Black);
+
+	LevelText.setFont(font);
+	LevelText.setCharacterSize(48);
+	LevelText.setStyle(sf::Text::Bold | sf::Text::Underlined);
+	LevelText.setFillColor(sf::Color::Black);
 
 
 	std::cout << "Game Scene initialize begin" << std::endl;
@@ -40,13 +43,21 @@ void GameScene::InitializeScene(sf::RenderWindow* _window)
 	SetupMapElements();
 	SetupElements();
 
-	//graphicDebugger.Disable();
+	graphicDebugger.Disable();
 	physicsEngine.SwitchModifyMode();
 	std::cout << "Game Scene initialize end" << std::endl;
 
 	ThrowsText.setString(std::to_string(arrowComponent.GetCurrentThrows()) + " / " + std::to_string(arrowComponent.GetMaxThrows()));
 	ThrowsText.setPosition(sf::Vector2f(window->getSize().x - 150, 20));
+
+	InitLevel();
+
+	LevelText.setString("Level" + std::to_string(currentLevel));
+	LevelText.setPosition(sf::Vector2f(window->getSize().x / 2, 20));
+
 	mainCamera.AddToTexts(&ThrowsText);
+	mainCamera.AddToTexts(&LevelText);
+
 }
 
 void GameScene::Update(float deltaTime)
@@ -64,13 +75,13 @@ void GameScene::GameLoop(float deltaTime)
 	{
 		if (arrowComponent.GetCurrentThrows() > arrowComponent.GetMaxThrows())
 		{
-			SceneManager::ChangeScene(SceneManager::SceneEnum::Menu);
+			SceneManager::SetLevel(0);
 		}
 	}
 
 	if (Player->GetPosition().y > 1200)
 	{
-		SceneManager::ChangeScene(SceneManager::SceneEnum::Menu);
+		SceneManager::SetLevel(0);
 	}
 
 
@@ -117,7 +128,7 @@ void GameScene::OnPlayerCollisionEnter(Collider* _collideWith, sf::Vector2f _col
 {
 	if (_collideWith->GetAttachedObject()->Name == "Target")
 	{
-		SceneManager::ChangeScene(SceneManager::SceneEnum::Menu);
+		SceneManager::SetLevel(currentLevel + 1);
 	}
 }
 

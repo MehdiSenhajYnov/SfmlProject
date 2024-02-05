@@ -12,6 +12,7 @@
 #include "MyMath.h"
 #include "GameScene.h"
 #include "LevelOneScene.h"
+#include "LevelTwoScene.h"
 #include "MenuScene.h"
 #include "SceneManager.h"
 

@@ -4,20 +4,16 @@ LevelOneScene::LevelOneScene()
 {
 }
 
-
 void LevelOneScene::Update(float deltaTime)
 {
 	mainCamera.Render();
 	GameLoop(deltaTime);
 }
 
-
-//void LevelOneScene::GameLoop(float deltaTime)
-//{
-//	mainCameraObject->SetPosition(sf::Vector2(Player->GetPosition().x - window->getSize().x / 2, mainCameraObject->GetPosition().y));
-//	CalUpdateOnAll(deltaTime);
-//	physicsEngine.UpdatePhysics(deltaTime);
-//}
+void LevelOneScene::InitLevel()
+{
+	currentLevel = 1;
+}
 
 void LevelOneScene::SetupMapElements()
 {

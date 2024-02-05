@@ -22,34 +22,55 @@ void ArrowComponent::Update(float deltaTime)
 				MouseInitialPosition = sf::Mouse::getPosition();
 			}
 
-			forceToGive = MouseInitialPosition - sf::Mouse::getPosition();
-			currentForce = (abs(forceToGive.x) + abs(forceToGive.y)) / 2;
+			if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
+			{
+				rightMouseClicked = true;
+			}
+
+			if (!rightMouseClicked)
+			{
+
+				forceToGive = MouseInitialPosition - sf::Mouse::getPosition();
+				currentForce = (abs(forceToGive.x) + abs(forceToGive.y)) / 2;
 
 
-			sf::Vector2f targetPosition = gameObject->GetPosition() + sf::Vector2f(forceToGive);
+				sf::Vector2f targetPosition = gameObject->GetPosition() + sf::Vector2f(forceToGive);
 
 
-			// Calcul de l'angle entre la position actuelle de l'objet et le point cible
-			currentAngle = std::atan2(targetPosition.y - gameObject->GetPosition().y,
+				// Calcul de l'angle entre la position actuelle de l'objet et le point cible
+				currentAngle = std::atan2(targetPosition.y - gameObject->GetPosition().y,
 				targetPosition.x - gameObject->GetPosition().x);
-			currentAngle = currentAngle * 180 / 3.14159265; // Convertir de radians à degrés
-			currentAngle += 90;
+				currentAngle = currentAngle * 180 / 3.14159265; // Convertir de radians à degrés
+				currentAngle += 90;
 
-			gameObject->SetRotation(currentAngle);
+				gameObject->SetRotation(currentAngle);
+
+			}
+
 		}
 		else
 		{
+
+
 			if (isMousePressed)
 			{
-				forceToGive = MouseInitialPosition - sf::Mouse::getPosition();
-				std::cout << "Force x: " << forceToGive.x << " y:" << forceToGive.y << std::endl;
-				isMousePressed = false;
+				if (!rightMouseClicked)
+				{
+					forceToGive = MouseInitialPosition - sf::Mouse::getPosition();
+					std::cout << "Force x: " << forceToGive.x << " y:" << forceToGive.y << std::endl;
+					isMousePressed = false;
 
-				float multiplier = 0.017f;
-				currentThrows+=1;
-				playerCollider->AddForce(sf::Vector2f(forceToGive.x, forceToGive.y) * multiplier);
-				forceToGive = sf::Vector2i(0, 0);
+					float multiplier = 0.017f;
+					currentThrows += 1;
+					playerCollider->AddForce(sf::Vector2f(forceToGive.x, forceToGive.y) * multiplier);
+					forceToGive = sf::Vector2i(0, 0);
+				}
+				rightMouseClicked = false;
+				isMousePressed = false;
 			}
+
+			
+
 		}
 	}
 
@@ -108,7 +129,7 @@ void ArrowComponent::CheckIfPlayerIsInIdle()
 {
 	float xDifference = std::abs(player->GetPosition().x - oldPlayerPosition.x);
 	float yDifference = std::abs(player->GetPosition().y - oldPlayerPosition.y);
-	std::cout << "xdifference : " << xDifference << " yDifference : " << yDifference << std::endl;
+	//std::cout << "xdifference : " << xDifference << " yDifference : " << yDifference << std::endl;
 	if (xDifference < 0.5f && yDifference < 0.5f)
 	{
 		counterOffSamePosition += 1;

@@ -1,9 +1,9 @@
 #pragma once
 #include "GameScene.h"
-class LevelTwoScene : public GameScene
+class LevelThreeScene : public GameScene
 {
 public:
-	LevelTwoScene();
+	LevelThreeScene();
 	void Update(float deltaTime) override;
 private:
 	void InitLevel() override;

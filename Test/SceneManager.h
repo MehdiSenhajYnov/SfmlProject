@@ -4,11 +4,13 @@
 class SceneManager
 {
 public:
-	enum SceneEnum { Menu, LevelOne, LevelTwo, LevelThree };
+	enum SceneEnum { Menu, Level1, Level2, Level3 };
 	static SceneEnum currentScene;
-	static void ChangeScene(SceneEnum newScene);
+
+	static void SetLevel(int newLevel);
 	static Event<SceneManager::SceneEnum> OnSceneChanged;
 private:
+	static void ChangeScene(SceneEnum newScene);
 
 };
 

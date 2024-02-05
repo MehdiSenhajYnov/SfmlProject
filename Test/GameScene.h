@@ -22,6 +22,7 @@ public:
 	void OnPlayerCollisionEnter(Collider* _collideWith, sf::Vector2f _collisionPoint);
 	std::shared_ptr<Collider> playerCollider;
 protected:
+	virtual void InitLevel() = 0;
 	virtual void SetupMapElements() = 0;
 	virtual void SetupElements() = 0;
 
@@ -55,4 +56,5 @@ protected:
 
 	sf::Font font;
 	sf::Text ThrowsText;
+	sf::Text LevelText;
 };

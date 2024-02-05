@@ -10,7 +10,7 @@ void MenuScene::OnPlayButtonClicked()
 	std::cout << "PLAY clicked !" << std::endl;
 	loadingButtonComponent.SetString("Loading ...");
 	mainCamera.Render();
-	SceneManager::ChangeScene(SceneManager::SceneEnum::LevelOne);
+	SceneManager::SetLevel(1);
 
 	OnSceneChanged();
 

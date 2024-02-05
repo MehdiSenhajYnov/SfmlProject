@@ -13,16 +13,11 @@ class LevelOneScene : public GameScene
 {
 public:
 	LevelOneScene();
-
 	void Update(float deltaTime) override;
-
-	//void GameLoop(float deltaTime);
-
 private:
-
+	void InitLevel() override;
 	void SetupMapElements() override;
 	void SetupElements() override;
-
 };
 
 

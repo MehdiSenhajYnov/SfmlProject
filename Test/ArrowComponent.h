@@ -36,5 +36,7 @@ private:
 	sf::Vector2f oldPlayerPosition;
 	int counterOffSamePosition;
 
+	bool rightMouseClicked;
+
 };
 

@@ -1,7 +1,7 @@
 #include "GameManager.h"
 
 GameManager::GameManager() :
-window(sf::VideoMode(1700, 1000), "Simple 2D Game")
+window(sf::VideoMode(1700, 1000), "Simple 2D Game", sf::Style::Fullscreen)
 {
 	iswindowFocus = true;
 }
@@ -42,11 +42,14 @@ void GameManager::ChangeScene(SceneManager::SceneEnum sceneToUse)
 	{
 		currentScene = std::make_unique<MenuScene>();
 	}
-	else if (sceneToUse == SceneManager::SceneEnum::LevelOne)
+	else if (sceneToUse == SceneManager::SceneEnum::Level1)
 	{
 		currentScene = std::make_unique<LevelOneScene>();
 	}
-
+	else if (sceneToUse == SceneManager::SceneEnum::Level2)
+	{
+		currentScene = std::make_unique<LevelTwoScene>();
+	}
 	currentScene->InitializeScene(&window);
 	haveToChangeScene = false;
 

@@ -1,22 +1,22 @@
-#include "LevelTwoScene.h"
+#include "LevelThreeScene.h"
 
-LevelTwoScene::LevelTwoScene()
+LevelThreeScene::LevelThreeScene()
 {
 }
 
 
-void LevelTwoScene::Update(float deltaTime)
+void LevelThreeScene::Update(float deltaTime)
 {
 	mainCamera.Render();
 	GameLoop(deltaTime);
 }
 
-void LevelTwoScene::InitLevel()
+void LevelThreeScene::InitLevel()
 {
-	currentLevel = 2;
+	currentLevel = 3;
 }
 
-void LevelTwoScene::SetupMapElements()
+void LevelThreeScene::SetupMapElements()
 {
 	BackgroundObject = CreateBackground();
 
@@ -32,12 +32,12 @@ void LevelTwoScene::SetupMapElements()
 	std::get<0>(CreatePlatformeOne())->SetPosition(6800, 800);
 }
 
-void LevelTwoScene::SetupElements()
+void LevelThreeScene::SetupElements()
 {
 	tie(Player, playerCollider) = CreatePlayer();
 	playerCollider->Gravity = true;
 
-	tie(directionArrow, forceArrow) = CreateArrows(Player, playerCollider, arrowComponent, arrowVisual, 4);
+	tie(directionArrow, forceArrow) = CreateArrows(Player, playerCollider, arrowComponent, arrowVisual, 3);
 
 	auto [targetObj, targetCollider] = CreateTarget();
 	targetCollider->Gravity = false;
